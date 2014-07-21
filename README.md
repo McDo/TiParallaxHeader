@@ -27,9 +27,9 @@ Create your headerView with a background image. You could use either an **ImageV
 
 ```javascript
 var headerView = Ti.UI.createView({
-   width: Ti.Platform.displayCaps.platformWidth,
-   height: 150,
-   backgroundImage: "image.png"
+        width: Ti.Platform.displayCaps.platformWidth,
+        height: 150,
+        backgroundImage: "image.png"
 });
 ```
 **Notice** that the width and height of the headerView should be assigned with a certain NUMBER like 200 or Ti.Platform.displayCaps.platformWidth.
