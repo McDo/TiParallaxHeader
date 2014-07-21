@@ -4,9 +4,10 @@
 //  Created by Mathias Amnell on 2013-04-12.
 //  Copyright (c) 2013 Apping AB. All rights reserved.
 //
+//  Edited by Do Lin on 21/07/2014.
+//
 
 #import "UIScrollView+APParallaxHeader.h"
-#import "AsyncImageView.h"
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -17,75 +18,80 @@
 @property (nonatomic) UIScrollView *scrollView;
 @property (nonatomic, readwrite) CGFloat originalTopInset;
 @property (nonatomic) CGFloat parallaxHeight;
+@property (nonatomic) CGFloat proxyViewHeight;
+@property (nonatomic) NSString *gradientColor;
 
 @property(nonatomic, assign) BOOL isObserving;
 
 @end
 
 
-
 #pragma mark - UIScrollView (APParallaxHeader)
 #import <objc/runtime.h>
 
 static char UIScrollViewParallaxView;
+BOOL isConstraintScrollViewTopInset;
+NSString *parallaxGradientColor;
 
 @implementation UIScrollView (APParallaxHeader)
 
-- (void)addParallaxWithImage:(NSString *)url andHeight:(CGFloat)height {
+-(CGPoint)calcProxyViewCenter:(CGPoint)parallaxCenter proxyViewHeight:(CGFloat)proxyHeight parallaxHeight:(CGFloat)parallaxHeight {
+    CGPoint center = CGPointMake( parallaxCenter.x / 2, parallaxCenter.y / 2 );
+    center.y += ( proxyHeight - parallaxHeight ) / 2 - 10;
+    return center;
+}
+
+
+- (void)addParallaxWithView:(TiViewProxy*)proxyView andHeight:(CGFloat)height parallaxGradientColor:(NSString *)color {
+    
+    parallaxGradientColor = color;
+    
     if(self.parallaxView) {
-        if(self.parallaxView.currentSubView) [self.parallaxView.currentSubView removeFromSuperview];
-        [self.parallaxView.imageView setImageURL:[NSURL URLWithString:url]];
-    }
-    else
-    {
-        APParallaxView *view = [[APParallaxView alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, height)];
-        [view setClipsToBounds:YES];
-        [view.imageView setImageURL:[NSURL URLWithString:url]];
         
-        view.scrollView = self;
-        view.parallaxHeight = height;
-        [self addSubview:view];
+        [self.parallaxView.currentSubView removeFromSuperview];
+        //XXX: needed to be resized?
+        //[proxyView.view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+        proxyView.view.center = CGPointMake(self.parallaxView.center.x, self.parallaxView.frame.size.height / 2);
+        [self.parallaxView addSubview:proxyView.view];
         
-        view.originalTopInset = self.contentInset.top;
+        self.parallaxView.parallaxHeight = height;
+        self.parallaxView.proxyViewHeight = proxyView.view.frame.size.height;
         
+        self.parallaxView.originalTopInset = self.contentInset.top;
         UIEdgeInsets newInset = self.contentInset;
         newInset.top = height;
         self.contentInset = newInset;
         
-        self.parallaxView = view;
-        self.showsParallax = YES;
-    }
-}
-
-- (void)setFadeoutOverHeight:(NSNumber*)height {
-    self.parallaxView.fadeoutOverHeight = height;
-}
-
-- (void)addParallaxWithView:(TiViewProxy*)proxyView andHeight:(CGFloat)height {
-    if(self.parallaxView) {
-        [self.parallaxView.currentSubView removeFromSuperview];
-        //[proxyView.view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-        [self.parallaxView addSubview:proxyView.view];
-    }
-    else
-    {
+    } else {
+        
         APParallaxView *parallaxView = [[APParallaxView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(proxyView.view.frame), height)];
         [parallaxView setClipsToBounds:YES];
-        //[proxyView.view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+        parallaxView.layer.zPosition = -10;
+        //XXX: needed to be resized?
+        //[proxyView.view setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
+
         [parallaxView addSubview:proxyView.view];
+        
+        //parallaxView.layer.borderColor = [UIColor redColor].CGColor;
+        //parallaxView.layer.borderWidth = 1.0f;
         
         parallaxView.scrollView = self;
         parallaxView.parallaxHeight = height;
+        parallaxView.proxyViewHeight = proxyView.view.frame.size.height;
+
         [self addSubview:parallaxView];
         
-        parallaxView.originalTopInset = self.contentInset.top;
+        proxyView.view.center = CGPointMake(parallaxView.center.x, parallaxView.frame.size.height / 2);
+        //proxyView.view.center = [self calcProxyViewCenter:parallaxView.center proxyViewHeight:proxyView.view.frame.size.height parallaxHeight:height];
         
+        parallaxView.originalTopInset = self.contentInset.top;
         UIEdgeInsets newInset = self.contentInset;
         newInset.top = height;
         self.contentInset = newInset;
         
         self.parallaxView = parallaxView;
         self.showsParallax = YES;
+        //[self setDelegate:self];
     }
 }
 
@@ -105,14 +111,12 @@ static char UIScrollViewParallaxView;
     if(!showsParallax) {
         if (self.parallaxView.isObserving) {
             [self removeObserver:self.parallaxView forKeyPath:@"contentOffset"];
-            [self removeObserver:self.parallaxView forKeyPath:@"frame"];
             self.parallaxView.isObserving = NO;
         }
     }
     else {
         if (!self.parallaxView.isObserving) {
             [self addObserver:self.parallaxView forKeyPath:@"contentOffset" options:NSKeyValueObservingOptionNew context:nil];
-            [self addObserver:self.parallaxView forKeyPath:@"frame" options:NSKeyValueObservingOptionNew context:nil];
             self.parallaxView.isObserving = YES;
         }
     }
@@ -136,35 +140,68 @@ static char UIScrollViewParallaxView;
     return self;
 }
 
+-(UIColor *)colorFromHexString:(NSString *)hexString {
+
+    NSString *cleanString = [hexString stringByReplacingOccurrencesOfString:@"#" withString:@""];
+    if([cleanString length] == 3) {
+        cleanString = [NSString stringWithFormat:@"%@%@%@%@%@%@",
+                       [cleanString substringWithRange:NSMakeRange(0, 1)],[cleanString substringWithRange:NSMakeRange(0, 1)],
+                       [cleanString substringWithRange:NSMakeRange(1, 1)],[cleanString substringWithRange:NSMakeRange(1, 1)],
+                       [cleanString substringWithRange:NSMakeRange(2, 1)],[cleanString substringWithRange:NSMakeRange(2, 1)]];
+    }
+    if([cleanString length] == 6) {
+        cleanString = [cleanString stringByAppendingString:@"ff"];
+    }
+    
+    unsigned int baseValue;
+    [[NSScanner scannerWithString:cleanString] scanHexInt:&baseValue];
+    
+    float red = ((baseValue >> 24) & 0xFF)/255.0f;
+    float green = ((baseValue >> 16) & 0xFF)/255.0f;
+    float blue = ((baseValue >> 8) & 0xFF)/255.0f;
+    float alpha = ((baseValue >> 0) & 0xFF)/255.0f;
+        
+    return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
+}
+
 - (void)drawRect:(CGRect)rect
 {
     [super drawRect:rect];
     
-    //// General Declarations
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = UIGraphicsGetCurrentContext();
+    if ( nil != parallaxGradientColor ) {
+        
+        NSString *hexString = parallaxGradientColor;
+        UIColor *color = [self colorFromHexString:hexString];
     
+        //// General Declarations
+        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+        CGContextRef context = UIGraphicsGetCurrentContext();
     
-    //// Gradient Declarations
-    NSArray* gradient3Colors = [NSArray arrayWithObjects:
-                                (id)[UIColor colorWithWhite:0 alpha:0.3].CGColor,
-                                (id)[UIColor clearColor].CGColor, nil];
-    CGFloat gradient3Locations[] = {0, 1};
-    CGGradientRef gradient3 = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef)gradient3Colors, gradient3Locations);
+        //// Gradient Declarations
+        /*NSArray* gradient3Colors = [NSArray arrayWithObjects:
+                                (id)[UIColor colorWithRed:255.0 / 255.0 green:51.0  / 255.0 blue:102.0 / 255.0 alpha:1.0].CGColor,
+                                (id)[UIColor clearColor].CGColor, nil];*/
+        NSArray* gradient3Colors = [NSArray arrayWithObjects:
+                                    (id) color.CGColor,
+                                    (id)[UIColor clearColor].CGColor, nil];
+        CGFloat gradient3Locations[] = {0, 1};
+        CGGradientRef gradient3 = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef)gradient3Colors, gradient3Locations);
     
-    //// Rectangle Drawing
-    UIBezierPath* rectanglePath = [UIBezierPath bezierPathWithRect: CGRectMake(0, 0, CGRectGetWidth(rect), 8)];
-    CGContextSaveGState(context);
-    [rectanglePath addClip];
-    CGContextDrawLinearGradient(context, gradient3, CGPointMake(0, CGRectGetHeight(rect)), CGPointMake(0, 0), 0);
-    CGContextRestoreGState(context);
+        //// Rectangle Drawing
+        UIBezierPath* rectanglePath = [UIBezierPath bezierPathWithRect: CGRectMake(0, 0, CGRectGetWidth(rect), CGRectGetHeight(rect))];
+        CGContextSaveGState(context);
+        [rectanglePath addClip];
+        CGContextDrawLinearGradient(context, gradient3, CGPointMake(0, CGRectGetHeight(rect)), CGPointMake(0, 0), 0);
+        CGContextRestoreGState(context);
     
-    
-    //// Cleanup
-    CGGradientRelease(gradient3);
-    CGColorSpaceRelease(colorSpace);
+        //// Cleanup
+        CGGradientRelease(gradient3);
+        CGColorSpaceRelease(colorSpace);
+        
+    }
     
 }
+
 
 @end
 
@@ -180,17 +217,13 @@ static char UIScrollViewParallaxView;
         [self setState:APParallaxTrackingActive];
         [self setAutoresizesSubviews:YES];
         
-        self.imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame))];
-        [self.imageView setAutoresizingMask:UIViewAutoresizingFlexibleHeight];
-        [self.imageView setContentMode:UIViewContentModeScaleAspectFill];
-        [self.imageView setClipsToBounds:YES];
-        [self addSubview:self.imageView];
+        if ( nil != parallaxGradientColor ) {
+            self.shadowView = [[APParallaxShadowView alloc] initWithFrame:CGRectMake(0, /*CGRectGetHeight(frame) / 4*/2, CGRectGetWidth(frame), CGRectGetHeight(frame) )];
+            [self.shadowView setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
+            self.shadowView.layer.zPosition = 100;
+            [self addSubview:self.shadowView];
+        }
         
-        self.shadowView = [[APParallaxShadowView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(frame)-8, CGRectGetWidth(frame), 8)];
-        [self.shadowView setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
-        [self addSubview:self.shadowView];
-        
-        self.fadeoutOverHeight = nil;
         self.currentSubView = nil;
     }
     
@@ -204,7 +237,6 @@ static char UIScrollViewParallaxView;
             if (self.isObserving) {
                 //If enter this branch, it is the moment just before "APParallaxView's dealloc", so remove observer here
                 [scrollView removeObserver:self forKeyPath:@"contentOffset"];
-                [scrollView removeObserver:self forKeyPath:@"frame"];
                 self.isObserving = NO;
             }
         }
@@ -222,8 +254,6 @@ static char UIScrollViewParallaxView;
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if([keyPath isEqualToString:@"contentOffset"])
         [self scrollViewDidScroll:[[change valueForKey:NSKeyValueChangeNewKey] CGPointValue]];
-    else if([keyPath isEqualToString:@"frame"])
-        [self layoutSubviews];
 }
 
 - (void)scrollViewDidScroll:(CGPoint)contentOffset {
@@ -237,32 +267,8 @@ static char UIScrollViewParallaxView;
     if(self.state == APParallaxTrackingActive) {
         CGFloat yOffset = contentOffset.y*-1;
         
-        [self setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(self.frame), yOffset)];
-        
-        //size the TiView
-        if (self.currentSubView != nil)
-        {
-           [self.currentSubView setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), yOffset)];
-        }
-        
-        //Fade out TiView
-        if (self.fadeoutOverHeight != nil)
-        {
-            CGFloat diff = 1;
-            CGFloat fadeout = [self.fadeoutOverHeight floatValue];
-            if (yOffset < self.parallaxHeight)
-            {
-                diff = 1;
-            }
-            else if ( yOffset >= (self.parallaxHeight + fadeout) )
-            {
-                diff = 0;
-            }
-            else if (yOffset < (self.parallaxHeight + fadeout) )
-            {
-                diff = 1-((yOffset - self.parallaxHeight)/fadeout);
-            }
-            [self.currentSubView setAlpha:diff];
+        if (yOffset < self.proxyViewHeight) {
+            [self setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(self.frame), yOffset)];
         }
     }
 }
