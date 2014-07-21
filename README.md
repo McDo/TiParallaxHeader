@@ -23,7 +23,7 @@ Create the tableView with Alloy xml or pure Titanium methods.
 ```
 
 ###Step2
-Create your headerView with a background image. You could use either **ImageView** or a general **View**.
+Create your headerView with a background image. You could use either an **ImageView** or a general **View**.
 
 ```javascript
 var headerView = Ti.UI.createView({
