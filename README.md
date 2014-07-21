@@ -57,7 +57,7 @@ $.table.addParallaxWithView( headerView, headerView.height - 50, true, "#4A4A4A"
 web: http://updatedisplaylist.com
 email:  james@jc888.co.uk
 
-**Do Lin
+**Do Lin**
 web: http://devportal.logicdesign.cn
 email: mcdooooo@gmail.com
 
