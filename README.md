@@ -32,7 +32,7 @@ var headerView = Ti.UI.createView({
    backgroundImage: "image.png"
 });
 ```
-**Notice** that the width and height of the headerView should be assigned with certain NUMBER like 200 or Ti.Platform.displayCaps.platformWidth.
+**Notice** that the width and height of the headerView should be assigned with a certain NUMBER like 200 or Ti.Platform.displayCaps.platformWidth.
 
 ###Step3
 Setup the parallax header view for tableView.
