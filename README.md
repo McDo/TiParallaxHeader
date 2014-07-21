@@ -45,8 +45,8 @@ Setup the parallax header view for tableView.
  * 2. the height of view that wrap the headerView.
  * 3. if you set this parameter to true, 
  *    the tableview couldn't be dragged upward anymore 
- *    if headerView reaching the top edge.
- * 4. color of the gradient cover. don't set it if you don't want a cover.  
+ *    if headerView reached the top edge.
+ * 4. color of the gradient overlay. don't set it if you don't want a cover.  
  */
 $.table.addParallaxWithView( headerView, headerView.height - 50, true, "#4A4A4A" );
 ```
