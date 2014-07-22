@@ -16,8 +16,11 @@ Download the latest distribution ZIP-file and consult the [Titanium Documentatio
 ## Quick Start
 
 ###Step1
-Create the tableView with Alloy xml or pure Titanium methods.
+Import the module and create the tableView with Alloy xml or pure Titanium methods.
 
+```javascript
+require('com.logicdesign.TiParallaxTableViewHeader');
+```
 ```xml
 <TableView id='table'></TableView>
 ```
