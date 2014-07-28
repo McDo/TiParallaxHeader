@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>CAA5E745-7103-442B-B953-34F239671202</string>
+	<key>IDESourceControlProjectName</key>
+	<string>TiParallaxTableViewHeader</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>DC1DC5F9-10F8-4AEB-81FB-C7C261EA8025</key>
+		<string>https://github.com/McDo/TiParallaxHeader.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>TiParallaxTableViewHeader.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>DC1DC5F9-10F8-4AEB-81FB-C7C261EA8025</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/McDo/TiParallaxHeader.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>DC1DC5F9-10F8-4AEB-81FB-C7C261EA8025</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>DC1DC5F9-10F8-4AEB-81FB-C7C261EA8025</string>
+			<key>IDESourceControlWCCName</key>
+			<string>TiParallaxHeader</string>
+		</dict>
+	</array>
+</dict>
+</plist>

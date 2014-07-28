@@ -46,13 +46,17 @@ NSString *parallaxGradientColor;
     
     parallaxGradientColor = color;
     
-    if(self.parallaxView) {
+    if ( self.parallaxView ) {
+        if (self.parallaxView.shadowView) {
+            self.parallaxView.shadowView.alpha = 0.0;
+        }
         
         [self.parallaxView.currentSubView removeFromSuperview];
         //XXX: needed to be resized?
         //[proxyView.view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
         proxyView.view.center = CGPointMake(self.parallaxView.center.x, self.parallaxView.frame.size.height / 2);
         [self.parallaxView addSubview:proxyView.view];
+        self.parallaxView.currentSubView.alpha = 0.0;
         
         self.parallaxView.parallaxHeight = height;
         self.parallaxView.proxyViewHeight = proxyView.view.frame.size.height;
@@ -61,6 +65,27 @@ NSString *parallaxGradientColor;
         UIEdgeInsets newInset = self.contentInset;
         newInset.top = height;
         self.contentInset = newInset;
+        
+        [UIView animateWithDuration: 0.3
+                              delay: 0.0
+                            options: UIViewAnimationCurveEaseOut
+                         animations: ^{
+                             self.parallaxView.currentSubView.alpha = 1.0;
+                         }
+                         completion: ^(BOOL finished) {
+                         }];
+        
+        if (self.parallaxView.shadowView) {
+            [UIView animateWithDuration: 0.3
+                              delay: 0.0
+                            options: UIViewAnimationCurveEaseOut
+                         animations: ^{
+                             self.parallaxView.shadowView.alpha = 1.0;
+                         }
+                         completion: ^(BOOL finished) {
+                         }];
+        }
+
         
     } else {
         
@@ -80,6 +105,10 @@ NSString *parallaxGradientColor;
         parallaxView.proxyViewHeight = proxyView.view.frame.size.height;
 
         [self addSubview:parallaxView];
+        
+        if (self.parallaxView.shadowView) {
+            self.parallaxView.shadowView.alpha = 0.0;
+        }
         
         proxyView.view.center = CGPointMake(parallaxView.center.x, parallaxView.frame.size.height / 2);
         //proxyView.view.center = [self calcProxyViewCenter:parallaxView.center proxyViewHeight:proxyView.view.frame.size.height parallaxHeight:height];
