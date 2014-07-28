@@ -66,7 +66,7 @@ NSString *parallaxGradientColor;
         newInset.top = height;
         self.contentInset = newInset;
         
-        [UIView animateWithDuration: 0.3
+        [UIView animateWithDuration: 0.4
                               delay: 0.0
                             options: UIViewAnimationCurveEaseOut
                          animations: ^{
@@ -76,7 +76,7 @@ NSString *parallaxGradientColor;
                          }];
         
         if (self.parallaxView.shadowView) {
-            [UIView animateWithDuration: 0.3
+            [UIView animateWithDuration: 0.4
                               delay: 0.0
                             options: UIViewAnimationCurveEaseOut
                          animations: ^{
