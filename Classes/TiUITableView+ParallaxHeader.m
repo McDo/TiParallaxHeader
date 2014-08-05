@@ -28,7 +28,29 @@ CGFloat headerViewHeight = 0;
     [self.tableView setContentOffset:CGPointMake(0, -height) animated:YES];
 }
 
+- (NSDictionary *) eventObjectForScrollView: (UIScrollView *) scrollView
+{
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+			[TiUtils pointToDictionary:scrollView.contentOffset],@"contentOffset",
+			[TiUtils sizeToDictionary:scrollView.contentSize], @"contentSize",
+			[TiUtils sizeToDictionary:tableview.bounds.size], @"size",
+			nil];
+}
+
+- (void)fireScrollEvent:(UIScrollView *)scrollView {
+	if ([self.proxy _hasListeners:@"scroll"])
+	{
+		[self.proxy fireEvent:@"scroll" withObject:[self eventObjectForScrollView:scrollView]];
+	}
+}
+
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    
+    if (scrollView.isDragging || scrollView.isDecelerating) {
+        
+        [self fireScrollEvent:scrollView];
+        
+    }
     
     if ( isConstraint ) {
         CGPoint offset = scrollView.contentOffset;
