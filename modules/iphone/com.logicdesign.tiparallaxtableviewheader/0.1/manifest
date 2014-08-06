@@ -1,0 +1,18 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 0.1
+apiversion: 2
+description: Parallax HeaderView for the Titanium TableView
+author: James Chow & Do Lin
+license: MIT
+copyright: Copyright (c) 2014 by Do Lin
+
+
+# these should not be edited
+name: TiParallaxTableViewHeader
+moduleid: com.logicdesign.TiParallaxTableViewHeader
+guid: 271378b3-af40-4e14-87e3-798fcc2e95c1
+platform: iphone
+minsdk: 3.2.2.GA
